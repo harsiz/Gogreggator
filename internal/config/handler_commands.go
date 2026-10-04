@@ -2,16 +2,15 @@ package config
 
 import (
 	"fmt"
+	"log"
 )
 
 func HandlerLogin(s *State, cmd Command) error {
 	var requiredArgs = 1
 	if len(cmd.Args) < requiredArgs {
-		err := fmt.Errorf("%s requires atleast (%d) arguments passed.", cmd.Name, requiredArgs)
-		return err
+		log.Fatal("Too little arguments provided for given command.")
 	} else if len(cmd.Args) > requiredArgs {
-		err := fmt.Errorf("%s requires no more than (%d) arguments passed.", cmd.Name, requiredArgs)
-		return err
+		log.Fatal("Too much arguments provided for given command.")
 	}
 
 	if err := s.Confg.SetUser(cmd.Args[0]); err != nil {
