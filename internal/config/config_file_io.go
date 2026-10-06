@@ -21,7 +21,7 @@ func Read() (Config, error) {
 	return c, nil
 }
 
-func Write(c Config) (error) {
+func Write(c Config) error {
 	jsonStr, err := json.Marshal(c)
 	if err != nil {
 		return err
@@ -41,4 +41,3 @@ func (c Config) SetUser(name string) error {
 	}
 	return nil
 }
-
