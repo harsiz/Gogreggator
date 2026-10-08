@@ -88,3 +88,76 @@ func HandlerUsers(s *State, cmd Command) error {
 	}
 	return nil
 }
+
+// 
+func HandlerAggregator(s *State, cmd Command) error {
+	var requiredArgs = 1
+	var feedURL string
+	if len(cmd.Args) < requiredArgs {
+		feedURL = "https://www.wagslane.dev/index.xml"
+	} else if len(cmd.Args) > requiredArgs {
+		log.Fatal("Too much arguments provided for given command.")
+	}
+
+	if feedURL != "https://www.wagslane.dev/index.xml" {
+		feedURL = cmd.Args[0]
+	}
+
+	f, err := fetchFeed(context.Background(), feedURL)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", f)
+	return nil
+}
+
+// Func: AddFeed (2 args - adds item to feed)
+func HandlerAddFeed(s *State, cmd Command) error {
+	var requiredArgs = 2
+	if len(cmd.Args) < requiredArgs {
+		log.Fatal("Too little arguments provided for given command.")
+	} else if len(cmd.Args) > requiredArgs {
+		log.Fatal("Too much arguments provided for given command.")
+	}
+
+	providedName := cmd.Args[0]
+	providedURL := cmd.Args[1]
+
+	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feedParams := database.CreateFeedParams{
+		ID: uuid.New(),
+		CreatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		UpdatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		Name: sql.NullString{
+			String: providedName,
+			Valid: true,
+		},
+		Url: sql.NullString{
+			String: providedURL,
+			Valid: true,
+		},
+		UserID: user.ID,
+	}
+
+	feed, err := s.Db.CreateFeed(
+		context.Background(),
+		feedParams,
+	)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", feed)
+	return nil
+}
+
+// Name: Feeds (no args)

@@ -27,6 +27,8 @@ func main() {
 	Commands.Register("register", config.HandlerRegister)
 	Commands.Register("reset", config.HandlerReset)
 	Commands.Register("users", config.HandlerUsers)
+	Commands.Register("addfeed", config.HandlerAddFeed)
+	Commands.Register("agg", config.HandlerAggregator)
 
 	// DB HANDLER
 
