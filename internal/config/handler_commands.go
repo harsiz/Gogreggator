@@ -11,6 +11,7 @@ import (
 	"github.com/harsiz/goggregator/internal/database"
 )
 
+// Func: Login (1 arg) - logs in user via singular username
 func HandlerLogin(s *State, cmd Command) error {
 	var requiredArgs = 1
 	if len(cmd.Args) < requiredArgs {
@@ -33,6 +34,8 @@ func HandlerLogin(s *State, cmd Command) error {
 	return nil
 }
 
+// Func: Register (not to be confused with config_commands_overseer.go register)
+// Registers given user
 func HandlerRegister(s *State, cmd Command) error {
 	var requiredArgs = 1
 	if len(cmd.Args) < requiredArgs {
@@ -65,6 +68,7 @@ func HandlerRegister(s *State, cmd Command) error {
 	return nil
 }
 
+// Func: Reset (no args) - deletes users from db
 func HandlerReset(s *State, cmd Command) error {
 	err := s.Db.DeleteUsers(context.Background())
 	if err != nil {
@@ -73,6 +77,7 @@ func HandlerReset(s *State, cmd Command) error {
 	return nil
 }
 
+// Func: Users (no args) - Lists users and highlights current user
 func HandlerUsers(s *State, cmd Command) error {
 	users, err := s.Db.GetAllUsers(context.Background())
 	if err != nil {
@@ -89,7 +94,7 @@ func HandlerUsers(s *State, cmd Command) error {
 	return nil
 }
 
-// 
+// Func: agg (1 arg) - Prints stuff from feed url
 func HandlerAggregator(s *State, cmd Command) error {
 	var requiredArgs = 1
 	var feedURL string
@@ -156,8 +161,123 @@ func HandlerAddFeed(s *State, cmd Command) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", feed)
+
+	feedFollowParams := database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		UpdatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		UserID: user.ID,
+		FeedID: feed.ID,
+	}
+
+	_, err = s.Db.CreateFeedFollow(
+		context.Background(),
+		feedFollowParams,
+	)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("New Feed Created: %v\nDetails: %+v\n", feed.Name.String, feed)
 	return nil
 }
 
-// Name: Feeds (no args)
+// Func: Feeds (no args)
+func HandlerFeeds(s *State, cmd Command) error {
+	feeds, err := s.Db.GetAllFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, f := range feeds {
+		user, err := s.Db.GetUserFromUserId(context.Background(), f.UserID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Feed Name: %s\nFeed URL: %s\nUser Who Created: %s\n\n", f.Name.String, f.Url.String, user)
+	}
+	return nil
+}
+
+// Func: Follow (1 arg) - Creates a new feed follow record for user
+func HandlerFollow(s *State, cmd Command) error {
+	var requiredArgs = 1
+	if len(cmd.Args) < requiredArgs {
+		log.Fatal("Too little arguments provided for given command. A URL is needed.")
+	} else if len(cmd.Args) > requiredArgs {
+		log.Fatal("Too much arguments provided for given command.")
+	}
+
+	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	feed, err := s.Db.GetFeedFromURL(
+		context.Background(),
+		sql.NullString{
+			String: cmd.Args[0],
+			Valid: true,
+		},
+	)
+	if err != nil {
+		return nil
+	}
+	feedFollowParams := database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		UpdatedAt: sql.NullTime{
+			Time: time.Now(),
+			Valid: true,
+		},
+		UserID: user.ID,
+		FeedID: feed.ID,
+	}
+	feedRow, err := s.Db.CreateFeedFollow(
+		context.Background(),
+		feedFollowParams,
+	)
+	if err != nil {
+		return err
+	}
+
+	g, err := s.Db.GetFeedFromFeedId(context.Background(), feedRow.FeedID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feed: %s\nCurrent User: %s\n\n", g.Name.String, user.Name)
+	return nil
+}
+
+// Func: Following (no args) - prints all feeds the user is following
+func HandlerFollowing(s *State, cmd Command) error {
+	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
+
+	if err != nil {
+		return err
+	}
+
+	feedFollow, err := s.Db.GetFeedFollowsForUser(
+		context.Background(),
+		user.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	for n, f := range feedFollow {
+		feed, err := s.Db.GetFeedFromFeedId(context.Background(), f.FeedID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Feed #%d: %s", n, feed.Name.String)
+	}
+	return nil
+}

@@ -29,6 +29,9 @@ func main() {
 	Commands.Register("users", config.HandlerUsers)
 	Commands.Register("addfeed", config.HandlerAddFeed)
 	Commands.Register("agg", config.HandlerAggregator)
+	Commands.Register("feeds", config.HandlerFeeds)
+	Commands.Register("follow", config.HandlerFollow)
+	Commands.Register("following", config.HandlerFollowing)
 
 	// DB HANDLER
 
