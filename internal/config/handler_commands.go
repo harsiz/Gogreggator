@@ -131,20 +131,20 @@ func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	feedParams := database.CreateFeedParams{
 		ID: uuid.New(),
 		CreatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		UpdatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		Name: sql.NullString{
 			String: providedName,
-			Valid: true,
+			Valid:  true,
 		},
 		Url: sql.NullString{
 			String: providedURL,
-			Valid: true,
+			Valid:  true,
 		},
 		UserID: user.ID,
 	}
@@ -160,11 +160,11 @@ func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	feedFollowParams := database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		CreatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		UpdatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		UserID: user.ID,
@@ -208,12 +208,11 @@ func HandlerFollow(s *State, cmd Command, user database.User) error {
 		log.Fatal("Too much arguments provided for given command.")
 	}
 
-	
 	feed, err := s.Db.GetFeedFromURL(
 		context.Background(),
 		sql.NullString{
 			String: cmd.Args[0],
-			Valid: true,
+			Valid:  true,
 		},
 	)
 	if err != nil {
@@ -222,11 +221,11 @@ func HandlerFollow(s *State, cmd Command, user database.User) error {
 	feedFollowParams := database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		CreatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		UpdatedAt: sql.NullTime{
-			Time: time.Now(),
+			Time:  time.Now(),
 			Valid: true,
 		},
 		UserID: user.ID,
@@ -282,7 +281,7 @@ func HandlerUnfollow(s *State, cmd Command, user database.User) error {
 		context.Background(),
 		sql.NullString{
 			String: url,
-			Valid: true,
+			Valid:  true,
 		},
 	)
 	if err != nil {

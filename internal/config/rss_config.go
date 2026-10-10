@@ -2,10 +2,10 @@ package config
 
 import (
 	"context"
+	"encoding/xml"
+	"html"
 	"io"
 	"net/http"
-	"html"
-	"encoding/xml"
 )
 
 func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
@@ -13,10 +13,10 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	if err != nil {
 		return &RSSFeed{}, err
 	}
-	
+
 	client := http.DefaultClient
 	req.Header.Set("User-Agent", "gator")
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return &RSSFeed{}, err
@@ -35,7 +35,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Copy Paste Boilerplate
 	r.Channel.Title = html.UnescapeString(r.Channel.Title)
 	r.Channel.Description = html.UnescapeString(r.Channel.Description)
-	
+
 	for i := range r.Channel.Item {
 		item := &r.Channel.Item[i]
 		item.Title = html.UnescapeString(item.Title)
