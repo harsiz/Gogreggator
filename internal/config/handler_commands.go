@@ -117,7 +117,7 @@ func HandlerAggregator(s *State, cmd Command) error {
 }
 
 // Func: AddFeed (2 args - adds item to feed)
-func HandlerAddFeed(s *State, cmd Command) error {
+func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	var requiredArgs = 2
 	if len(cmd.Args) < requiredArgs {
 		log.Fatal("Too little arguments provided for given command.")
@@ -127,11 +127,6 @@ func HandlerAddFeed(s *State, cmd Command) error {
 
 	providedName := cmd.Args[0]
 	providedURL := cmd.Args[1]
-
-	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	feedParams := database.CreateFeedParams{
 		ID: uuid.New(),
@@ -205,7 +200,7 @@ func HandlerFeeds(s *State, cmd Command) error {
 }
 
 // Func: Follow (1 arg) - Creates a new feed follow record for user
-func HandlerFollow(s *State, cmd Command) error {
+func HandlerFollow(s *State, cmd Command, user database.User) error {
 	var requiredArgs = 1
 	if len(cmd.Args) < requiredArgs {
 		log.Fatal("Too little arguments provided for given command. A URL is needed.")
@@ -213,10 +208,7 @@ func HandlerFollow(s *State, cmd Command) error {
 		log.Fatal("Too much arguments provided for given command.")
 	}
 
-	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
-	if err != nil {
-		return err
-	}
+	
 	feed, err := s.Db.GetFeedFromURL(
 		context.Background(),
 		sql.NullString{
@@ -257,13 +249,7 @@ func HandlerFollow(s *State, cmd Command) error {
 }
 
 // Func: Following (no args) - prints all feeds the user is following
-func HandlerFollowing(s *State, cmd Command) error {
-	user, err := s.Db.GetUser(context.Background(), s.Confg.CurrentUserName)
-
-	if err != nil {
-		return err
-	}
-
+func HandlerFollowing(s *State, cmd Command, user database.User) error {
 	feedFollow, err := s.Db.GetFeedFollowsForUser(
 		context.Background(),
 		user.ID,
@@ -279,5 +265,42 @@ func HandlerFollowing(s *State, cmd Command) error {
 		}
 		fmt.Printf("Feed #%d: %s", n, feed.Name.String)
 	}
+	return nil
+}
+
+// Func: Unfollow (1 arg) - unfollows feedfollow
+func HandlerUnfollow(s *State, cmd Command, user database.User) error {
+	var requiredArgs = 1
+	if len(cmd.Args) < requiredArgs {
+		log.Fatal("Too little arguments provided for given command. A URL is needed.")
+	} else if len(cmd.Args) > requiredArgs {
+		log.Fatal("Too much arguments provided for given command.")
+	}
+
+	url := cmd.Args[0]
+	feed, err := s.Db.GetFeedFromURL(
+		context.Background(),
+		sql.NullString{
+			String: url,
+			Valid: true,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	UnfollowParams := database.UnfollowFeedParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	}
+
+	err = s.Db.UnfollowFeed(
+		context.Background(),
+		UnfollowParams,
+	)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Successfully unfollowed Feed Pair: UID - %v FID - %v", user.ID, feed.ID)
 	return nil
 }
