@@ -18,13 +18,13 @@ I might rewrite for sqlite in the future (probably will actually.)
 
 You can run these below. Some require extra arguments:
 
-"login" (requires username)
-"register" (requires username)
-"reset"
-"users"
-"addfeed" (requires name, and url)
-"agg" (requires url) (also, this aggregator command currently just blurts out a struct since i am lazy. in the future it will be formatted - hopefully)
-"feeds"
-"follow" (requires url)
-"following" ()
-"unfollow" (requires url)
+- "login" (requires username)
+- "register" (requires username)
+- "reset"
+- "users"
+- "addfeed" (requires name, and url)
+- "agg" (requires url) (also, this aggregator command currently just blurts out a struct since i am lazy. in the future it will be formatted - hopefully)
+- "feeds"
+- "follow" (requires url)
+- "following" ()
+- "unfollow" (requires url)
